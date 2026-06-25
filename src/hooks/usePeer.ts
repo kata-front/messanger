@@ -20,14 +20,23 @@ const usePeer = (socket: Socket | null, roomId: string): PeerHook => {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
 
   const getMedia = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true,
-    });
-    return stream;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: false,
+        audio: true,
+      });
+      return stream;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   };
 
   const destroy = useCallback(() => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => track.stop());
+    }
+
     if (peerRef.current) {
       peerRef.current.destroy();
       peerRef.current = null;
@@ -40,8 +49,13 @@ const usePeer = (socket: Socket | null, roomId: string): PeerHook => {
 
     destroy();
 
-    localStreamRef.current = await getMedia();
-    setLocalStream(localStreamRef.current);
+    try {
+      localStreamRef.current = await getMedia();
+      setLocalStream(localStreamRef.current);
+    } catch (error) {
+      console.log(error);
+      return;
+    }
 
     const peer = new SimplePeer({
       initiator: true,
@@ -50,10 +64,12 @@ const usePeer = (socket: Socket | null, roomId: string): PeerHook => {
     peerRef.current = peer;
 
     peer.on("signal", (data) => {
+      console.log(data);
       socket.emit("signal", { to: roomId, data });
     });
 
     peer.on("stream", (stream) => {
+      console.log(stream);
       setRemoteStream(stream);
     });
 
@@ -62,9 +78,10 @@ const usePeer = (socket: Socket | null, roomId: string): PeerHook => {
     });
 
     peer.on("error", (err) => {
+      destroy();
       console.log(err);
     });
-  }, [roomId]);
+  }, [roomId, socket, destroy]);
 
   useEffect(() => {
     if (!socket) return;
@@ -74,8 +91,13 @@ const usePeer = (socket: Socket | null, roomId: string): PeerHook => {
         peerRef.current.signal(data);
       } else {
         if (!localStream) {
-          localStreamRef.current = await getMedia();
-          setLocalStream(localStreamRef.current);
+          try {
+            localStreamRef.current = await getMedia();
+            setLocalStream(localStreamRef.current);
+          } catch (error) {
+            console.log(error);
+            return;
+          }
         }
 
         const peer = new SimplePeer({
@@ -86,10 +108,12 @@ const usePeer = (socket: Socket | null, roomId: string): PeerHook => {
         peerRef.current = peer;
 
         peer.on("signal", (data) => {
+          console.log(data);
           socket.emit("signal", { to: from, data });
         });
 
         peer.on("stream", (incomingStream) => {
+          console.log(incomingStream);
           setRemoteStream(incomingStream);
         });
 
@@ -101,7 +125,7 @@ const usePeer = (socket: Socket | null, roomId: string): PeerHook => {
     };
 
     socket.on("signal", handler);
-  }, [roomId]);
+  }, [roomId, socket]);
 
   return {
     localStream,

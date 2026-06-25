@@ -8,15 +8,24 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-gradient-1: var(--gradient-color-1);
+  --color-gradient-2: var(--gradient-color-2);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #131313;
     --foreground: #ededed;
+    --gradient-color-1: rgb(24, 255, 224);
+    --gradient-color-2: rgb(136, 0, 148);
   }
+}
+
+html {
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 body {

@@ -26,7 +26,8 @@ app.prepare().then(() => {
         })
 
         socket.on('signal', ({ to, data}) => {
-            io.to(to).emit('signal', {from: socket.id, data})
+            console.log('signal received', {to, data});
+            socket.to(to).emit('signal', {from: socket.id, data})
         })
 
         socket.on('disconnect', () => {
