@@ -8,7 +8,7 @@ export default function Home() {
       <Header />
       <main>
         <section className="p-6.25 w-screen h-screen bg-background grid grid-cols-1 md:grid-cols-2 items-center gap-5">
-          <section className="">
+          <section className="flex flex-col gap-3">
             <section className="flex gap-5">
               <Button href='/register' classes='w-40 h-10'>Регистрация</Button>
               <Button href='/login' classes='w-40 h-10'>Вход</Button>
@@ -19,7 +19,7 @@ export default function Home() {
               </div>
               возможностей для общения
             </div>
-            <AnimateText classes="text-2xl font-sans">Быстрое решение для вашего общения и решения задач</AnimateText>
+            <AnimateText classes="text-2xl font-sans" delay={0}>Быстрое решение для вашего общения и решения задач</AnimateText>
             <Button href='/register' classes='w-80 h-12'>Попробуйте</Button>
           </section>
           <section className="w-full md:w-1/2"></section>

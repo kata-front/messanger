@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import Link from "next/link";
@@ -6,9 +6,14 @@ import { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 
 const Header = () => {
-  const isMobile = useMediaQuery({
-    query: "(max-width: 768px)",
-  });
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const links = [
     { href: "/", label: "Home" },
@@ -18,47 +23,53 @@ const Header = () => {
 
   const headerRef = useRef<HTMLDivElement>(null);
 
-  const [isTop, setIsTop] = useState<boolean>(true)
-  const [isVisible, setIsVisible] = useState<boolean>(true)
-  const prevScrollPos = useRef<number>(0)
+  const [isTop, setIsTop] = useState<boolean>(true);
+  const [isVisible, setIsVisible] = useState<boolean>(true);
+  const prevScrollPos = useRef<number>(0);
 
   useEffect(() => {
     const handler = () => {
-        const currentScroll = window.scrollY;
+      const currentScroll = window.scrollY;
 
-        if (currentScroll === 0) {
-            setIsTop(true)
-        } else if (currentScroll < prevScrollPos.current) {
-            setIsVisible(true)
-        } else {
-            setIsTop(false)
-            setIsVisible(false)
-        }
+      if (currentScroll === 0) {
+        setIsTop(true);
+      } else if (currentScroll < prevScrollPos.current) {
+        setIsVisible(true);
+      } else {
+        setIsTop(false);
+        setIsVisible(false);
+      }
 
-        prevScrollPos.current = currentScroll
-    }
+      prevScrollPos.current = currentScroll;
+    };
 
-    window.addEventListener('scroll', handler)
+    window.addEventListener("scroll", handler);
 
     return () => {
-        window.removeEventListener('scroll', handler)
-    }
-  }, [])
+      window.removeEventListener("scroll", handler);
+    };
+  }, []);
 
-  useGSAP(() => {
-    gsap.to(headerRef.current, {
+  useGSAP(
+    () => {
+      gsap.to(headerRef.current, {
         opacity: isVisible ? 1 : 0,
         yPercent: isVisible ? 0 : 100,
         duration: 0.5,
-        ease: 'linear',
-        pointerEvents: isVisible ? 'all' : 'none'
-    })
-  }, {
-    dependencies: [isVisible]
-  })
+        ease: "linear",
+        pointerEvents: isVisible ? "all" : "none",
+      });
+    },
+    {
+      dependencies: [isVisible],
+    },
+  );
 
   return (
-    <header ref={headerRef} className={`fixed top-5 left-5 right-5 h-[7vh] rounded-3xl w-auto p-5 flex items-center justify-between transition-bg duration-1000 ${isTop ? 'bg-transparent' : 'bg-black/50 backdrop-blur-md'}`}>
+    <header
+      ref={headerRef}
+      className={`fixed top-5 left-5 right-5 h-[7vh] rounded-3xl w-auto p-5 flex items-center justify-between transition-bg duration-1000 ${isTop ? "bg-transparent" : "bg-black/50 backdrop-blur-md"}`}
+    >
       <section className="h-full flex items-center gap-2">
         <div className="h-full rounded-full">
           <img

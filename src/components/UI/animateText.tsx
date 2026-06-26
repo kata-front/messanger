@@ -9,7 +9,8 @@ gsap.registerPlugin(SplitText);
 const AnimateText: FC<{
   children: string | ReactNode;
   classes: string;
-}> = ({ children, classes }) => {
+  delay: number
+}> = ({ children, classes, delay }) => {
     const divRef = useRef<HTMLDivElement>(null);
     
     useGSAP(() => {
@@ -21,7 +22,8 @@ const AnimateText: FC<{
             ease: "power2.inOut",
             stagger: {
                 amount: .7
-            }
+            },
+            delay: delay
         })
     })
 
