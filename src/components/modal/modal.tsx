@@ -17,7 +17,7 @@ const Modal: FC<{
     })
   })
 
-  return <div ref={modalRef} className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-3xl ${classes}`}>
+  return <div ref={modalRef} className={`z-1000 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-3xl ${classes}`}>
     {children}
   </div>;
 };
