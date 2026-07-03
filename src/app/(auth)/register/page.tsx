@@ -1,19 +1,43 @@
 // app/(auth)/register/page.tsx
-'use client';
+"use client";
 import Input from "@/components/UI/input";
 import { RegisterForm } from "@/components/utilities/types";
+import { RegisterAction } from "@/libs/actions/authActions";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 export default function RegisterPage() {
-  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<RegisterForm>();
+  const router = useRouter();
 
-  const onSubmit = (data: RegisterForm) => {
-    console.log(data);
-    reset();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setError,
+  } = useForm<RegisterForm>();
+
+  const { execute, isExecuting } = useAction(RegisterAction, {
+    onError: ({ error }) => {
+      if (error.validationErrors) {
+        Object.entries(error.validationErrors.fieldErrors).forEach(
+          ([key, value]) =>
+            setError(key as keyof RegisterForm, { message: value[0] }),
+        );
+      }
+    },
+    onSuccess: () => {
+      router.push("/");
+    },
+  });
+
+  const onSubmit = async (data: RegisterForm) => {
+    await execute(data);
   };
 
-  const password = watch('password');
+  const password = watch("password");
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
@@ -23,7 +47,10 @@ export default function RegisterPage() {
           <p className="text-gray-400 mt-2">Присоединяйтесь к сообществу</p>
         </div>
 
-        <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="w-full flex flex-col gap-4"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <label htmlFor="name" className="text-sm font-medium text-gray-300">
             Имя
           </label>
@@ -37,7 +64,9 @@ export default function RegisterPage() {
               maxLength: { value: 50, message: "Максимум 50 символов" },
             })}
           />
-          <div className="font-sans text-red-400 text-sm -mt-2">{errors.name?.message}</div>
+          <div className="font-sans text-red-400 text-sm -mt-2">
+            {errors.name?.message}
+          </div>
 
           <label htmlFor="email" className="text-sm font-medium text-gray-300">
             E-mail
@@ -54,9 +83,14 @@ export default function RegisterPage() {
               },
             })}
           />
-          <div className="font-sans text-red-400 text-sm -mt-2">{errors.email?.message}</div>
+          <div className="font-sans text-red-400 text-sm -mt-2">
+            {errors.email?.message}
+          </div>
 
-          <label htmlFor="password" className="text-sm font-medium text-gray-300">
+          <label
+            htmlFor="password"
+            className="text-sm font-medium text-gray-300"
+          >
             Пароль
           </label>
           <Input
@@ -69,9 +103,14 @@ export default function RegisterPage() {
               maxLength: { value: 16, message: "Максимум 16 символов" },
             })}
           />
-          <div className="font-sans text-red-400 text-sm -mt-2">{errors.password?.message}</div>
+          <div className="font-sans text-red-400 text-sm -mt-2">
+            {errors.password?.message}
+          </div>
 
-          <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-300">
+          <label
+            htmlFor="confirmPassword"
+            className="text-sm font-medium text-gray-300"
+          >
             Подтверждение пароля
           </label>
           <Input
@@ -80,22 +119,28 @@ export default function RegisterPage() {
             placeholder="Повторите пароль"
             {...register("confirmPassword", {
               required: "Подтверждение обязательно",
-              validate: value => value === password || "Пароли не совпадают",
+              validate: (value) => value === password || "Пароли не совпадают",
             })}
           />
-          <div className="font-sans text-red-400 text-sm -mt-2">{errors.confirmPassword?.message}</div>
+          <div className="font-sans text-red-400 text-sm -mt-2">
+            {errors.confirmPassword?.message}
+          </div>
 
           <button
+            disabled={isExecuting}
             type="submit"
-            className="w-full mt-4 py-3 bg-gradient-to-r from-purple-600 to-teal-500 hover:from-purple-700 hover:to-teal-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg"
+            className="w-full mt-4 py-3 bg-linear-to-r from-purple-600 to-teal-500 hover:from-purple-700 hover:to-teal-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg"
           >
-            Зарегистрироваться
+            {isExecuting ? "Загрузка..." : "Зарегистрироваться"}
           </button>
         </form>
 
         <p className="text-center text-gray-400 mt-6 text-sm">
-          Уже есть аккаунт?{' '}
-          <Link href="/login" className="text-teal-400 hover:text-teal-300 hover:underline transition-colors">
+          Уже есть аккаунт?{" "}
+          <Link
+            href="/login"
+            className="text-teal-400 hover:text-teal-300 hover:underline transition-colors"
+          >
             Войдите
           </Link>
         </p>

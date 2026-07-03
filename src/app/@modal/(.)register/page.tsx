@@ -2,16 +2,30 @@
 import Modal from "@/components/modal/modal";
 import Input from "@/components/UI/input";
 import { RegisterForm } from "@/components/utilities/types";
+import { RegisterAction } from "@/libs/actions/authActions";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 const RegisterModal = () => {
   const router = useRouter();
-  const { register, handleSubmit, formState: { errors }, reset, watch } = useForm<RegisterForm>();
+  const { register, handleSubmit, formState: { errors }, watch, setError } = useForm<RegisterForm>();
 
-  const onSubmit = (data: RegisterForm) => {
-    console.log('Регистрация:', data);
-    reset();
+  const {execute, isExecuting} = useAction(RegisterAction, {
+    onSuccess: () => {
+      router.push('/');
+    },
+    onError: ({ error }) => {
+      if (error.validationErrors) {
+        Object.entries(error.validationErrors.fieldErrors).forEach(
+          ([key, value]) => setError(key as keyof RegisterForm, { message: value[0] })
+        )
+      }
+    }
+  })
+
+  const onSubmit = async (data: RegisterForm) => {
+    await execute(data);
   };
 
   const password = watch('password');
@@ -95,10 +109,11 @@ const RegisterModal = () => {
             <div className="font-sans text-red-500 text-sm">{errors.confirmPassword?.message}</div>
 
             <button
+              disabled={isExecuting}
               type="submit"
               className="w-full mt-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors duration-200"
             >
-              Зарегистрироваться
+              {isExecuting ? 'Загрузка...' : 'Зарегистрироваться'}
             </button>
 
             <div className="text-center text-sm text-gray-600 mt-2">

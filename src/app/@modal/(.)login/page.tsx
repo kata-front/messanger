@@ -2,16 +2,32 @@
 import Modal from "@/components/modal/modal";
 import Input from "@/components/UI/input"; // импортируем наш компонент
 import { LoginForm } from "@/components/utilities/types";
+import { LoginAction } from "@/libs/actions/authActions";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 const LoginModal = () => {
   const router = useRouter();
-  const { register, handleSubmit, formState: {errors}, reset} = useForm<LoginForm>();
+  const { register, handleSubmit, formState: {errors}, setError} = useForm<LoginForm>();
 
-  const onSubmit = (data: LoginForm) => {
-    console.log(data);
-    reset();
+  const {execute, isExecuting} = useAction(LoginAction, {
+    onSuccess: () => {
+      router.push("/");
+    },
+
+    onError: ({ error }) => {
+      if (error.validationErrors) {
+        Object.entries(error.validationErrors.fieldErrors).forEach(
+          ([key, value]) => setError(key as keyof LoginForm, { message: value[0] })
+        )
+      }
+    },
+  })
+
+  const onSubmit = async (data: LoginForm) => {
+    await execute(data);
   };
 
   return (
@@ -76,10 +92,11 @@ const LoginModal = () => {
             <div className='font-sans text-red-500'>{errors.password?.message}</div>
 
             <button
+              disabled={isExecuting}
               type="submit"
               className="w-full mt-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors duration-200"
             >
-              Войти
+              {isExecuting ? "Вход..." : "Вход"}
             </button>
           </form>
         </div>

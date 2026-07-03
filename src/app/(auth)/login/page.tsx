@@ -2,15 +2,46 @@
 'use client';
 import Input from "@/components/UI/input";
 import { LoginForm } from "@/components/utilities/types";
+import { LoginAction } from "@/libs/actions/authActions";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 export default function LoginPage() {
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<LoginForm>();
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<LoginForm>();
+
+  const { execute, isExecuting } = useAction(LoginAction, {
+    onSuccess: () => {
+      router.push("/");
+    },
+    onError: ({ error }) => {
+      if (error.validationErrors?.fieldErrors) {
+        Object.entries(error.validationErrors.fieldErrors).forEach(([field, messages]) => {
+          if (messages && messages.length > 0) {
+            setError(field as keyof LoginForm, {
+              message: messages[0],
+            });
+          }
+        });
+      }
+      if (error.serverError) {
+        setError('root.serverError', {
+          message: error.serverError,
+        });
+      }
+    },
+  });
 
   const onSubmit = (data: LoginForm) => {
-    console.log(data);
-    reset();
+    execute(data);
   };
 
   return (
@@ -37,7 +68,7 @@ export default function LoginPage() {
               },
             })}
           />
-          <div className="font-sans text-red-400 text-sm -mt-2">{errors.email?.message}</div>
+          {errors.email && <div className="text-red-400 text-sm">{errors.email.message}</div>}
 
           <label htmlFor="password" className="text-sm font-medium text-gray-300">
             Пароль
@@ -52,13 +83,21 @@ export default function LoginPage() {
               maxLength: { value: 16, message: "Максимум 16 символов" },
             })}
           />
-          <div className="font-sans text-red-400 text-sm -mt-2">{errors.password?.message}</div>
+          {errors.password && <div className="text-red-400 text-sm">{errors.password.message}</div>}
+
+          {/* Общая серверная ошибка */}
+          {errors.root?.serverError && (
+            <div className="text-red-400 text-sm bg-red-400/10 p-2 rounded">
+              {errors.root.serverError.message}
+            </div>
+          )}
 
           <button
             type="submit"
-            className="w-full mt-4 py-3 bg-gradient-to-r from-purple-600 to-teal-500 hover:from-purple-700 hover:to-teal-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg"
+            disabled={isExecuting}
+            className="w-full mt-4 py-3 bg-linear-to-r from-purple-600 to-teal-500 hover:from-purple-700 hover:to-teal-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg disabled:opacity-50"
           >
-            Войти
+            {isExecuting ? "Вход..." : "Войти"}
           </button>
         </form>
 
