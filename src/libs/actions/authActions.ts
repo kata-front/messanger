@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { actionClient } from "../actionClient";
+import { prisma } from "../prisma";
 
 const LoginSchema = z.object({
   email: z.string().email({
@@ -62,6 +63,13 @@ export const LoginAction = actionClient
 export const RegisterAction = actionClient
   .inputSchema(RegisterSchema)
   .action(async ({ parsedInput: { name, email, password } }) => {
-    console.log(name, email, password);
-    return "OK";
+    try {
+      const user = await prisma.user.create({
+        data: { name, email, password },
+      });
+
+      return { success: true, data: user };
+    } catch (error) {
+      return { success: false, error };
+    }
   });
