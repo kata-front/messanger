@@ -22,8 +22,13 @@ const RegisterFormComponent = () => {
 
   const { execute, isExecuting } = useAction(RegisterAction, {
     onSuccess: ({ data }) => {
-      console.log(data);
-      router.push("/");
+      if (!data.success) {
+        setError('root', {
+          message: (data.error as { message: string }).message ?? 'Произошла ошибка',
+        })
+      } else {
+        router.push("/");
+      }
     },
 
     onError: ({ error }) => {
@@ -115,6 +120,10 @@ const RegisterFormComponent = () => {
       <div className="font-sans text-red-500 text-sm">
         {errors.confirmPassword?.message}
       </div>
+
+      {errors.root && (
+        <div className="font-sans text-red-500 text-sm">{errors.root.message}</div>
+      )}
 
       <button
         disabled={isExecuting}

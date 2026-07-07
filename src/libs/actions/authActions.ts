@@ -56,8 +56,27 @@ const RegisterSchema = z
 export const LoginAction = actionClient
   .inputSchema(LoginSchema)
   .action(async ({ parsedInput: { email, password } }) => {
-    console.log(email, password);
-    return "OK";
+    try {
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        return {
+          success: false,
+          error: { message: "Invalid email or password" },
+        };
+      } else if (user.password !== password) {
+        return {
+          success: false,
+          error: { message: "Invalid email or password" },
+        };
+      } else {
+        return { success: true, data: { email, name: user.name } };
+      }
+    } catch (error) {
+      return { success: false, error };
+    }
   });
 
 export const RegisterAction = actionClient
@@ -68,8 +87,14 @@ export const RegisterAction = actionClient
         data: { name, email, password },
       });
 
-      return { success: true, data: user };
-    } catch (error) {
+      return { success: true, data: { email, name } };
+    } catch (error: any) {
+      if (error?.code === "P2002") {
+        return {
+          success: false,
+          error: { message: "Пользователь с таким email уже существует" },
+        };
+      }
       return { success: false, error };
     }
   });

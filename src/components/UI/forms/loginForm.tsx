@@ -20,8 +20,13 @@ const LoginFormComponent = () => {
 
   const { execute, isExecuting } = useAction(LoginAction, {
     onSuccess: ({ data }) => {
-      console.log(data);
-      router.push("/");
+      if (!data.success) {
+        setError('root', {
+          message: (data.error as { message: string }).message ?? 'Произошла ошибка',
+        });
+      } else {
+        router.push("/");
+      }
     },
     onError: ({ error }) => {
       if (error.validationErrors) {
@@ -80,9 +85,9 @@ const LoginFormComponent = () => {
       )}
 
       {/* Общая серверная ошибка */}
-      {errors.root?.serverError && (
+      {errors.root && (
         <div className="text-red-400 text-sm bg-red-400/10 p-2 rounded">
-          {errors.root.serverError.message}
+          {errors.root.message}
         </div>
       )}
 
