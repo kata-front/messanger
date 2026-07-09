@@ -1,15 +1,18 @@
 "use client";
 
-import { LoginForm } from "@/components/utilities/types";
+import { LoginForm } from "@/libs/types";
 import { useAction } from "next-safe-action/hooks";
 import { useForm } from "react-hook-form";
 import Input from "../input";
 import { LoginAction } from "@/libs/actions/authActions";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAppDispatch } from "@/libs/redux/store";
+import userSlice from "@/libs/redux/userSlice";
 
 const LoginFormComponent = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const {
     register,
@@ -25,6 +28,8 @@ const LoginFormComponent = () => {
           message: (data.error as { message: string }).message ?? 'Произошла ошибка',
         });
       } else {
+        dispatch(userSlice.actions.setUser(data.data!));
+
         router.push("/");
       }
     },

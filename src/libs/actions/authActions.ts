@@ -3,6 +3,9 @@
 import { z } from "zod";
 import { actionClient } from "../actionClient";
 import { prisma } from "../prisma";
+import { createAndSetTokens } from "../auth/jwt";
+import { cookies } from "next/headers";
+import { hashPassword, verifyPassword } from "../auth/password";
 
 const LoginSchema = z.object({
   email: z.string().email({
@@ -66,16 +69,29 @@ export const LoginAction = actionClient
           success: false,
           error: { message: "Invalid email or password" },
         };
-      } else if (user.password !== password) {
-        return {
-          success: false,
-          error: { message: "Invalid email or password" },
-        };
       } else {
+        const isPasswordValid = await verifyPassword(password, user.password);
+
+        if (!isPasswordValid) {
+          return {
+            success: false,
+            error: { message: "Invalid email or password" },
+          };
+        }
+
+        const cookieStorage = await cookies();
+
+        await createAndSetTokens(cookieStorage, {
+          name: user.name,
+          email: user.email,
+          sub: user.id,
+        });
+
         return { success: true, data: { email, name: user.name } };
       }
     } catch (error) {
-      return { success: false, error };
+      console.error("Login error:", error);
+      return { success: false, error: { message: "Internal server error" } };
     }
   });
 
@@ -84,7 +100,15 @@ export const RegisterAction = actionClient
   .action(async ({ parsedInput: { name, email, password } }) => {
     try {
       const user = await prisma.user.create({
-        data: { name, email, password },
+        data: { name, email, password: await hashPassword(password) },
+      });
+
+      const cookieStorage = await cookies();
+
+      await createAndSetTokens(cookieStorage, {
+        name: user.name,
+        email: user.email,
+        sub: user.id,
       });
 
       return { success: true, data: { email, name } };
@@ -95,6 +119,7 @@ export const RegisterAction = actionClient
           error: { message: "Пользователь с таким email уже существует" },
         };
       }
-      return { success: false, error };
+      console.error("Login error:", error);
+      return { success: false, error: { message: "Internal server error" } };
     }
   });

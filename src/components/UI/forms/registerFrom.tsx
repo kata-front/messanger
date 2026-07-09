@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
-import { RegisterForm } from "@/components/utilities/types";
+import { RegisterForm } from "@/libs/types";
 import { useForm } from "react-hook-form";
 import Input from "../input";
 import { useAction } from "next-safe-action/hooks";
 import { RegisterAction } from "@/libs/actions/authActions";
 import { useRouter } from "next/navigation";
+import { useAppDispatch } from "@/libs/redux/store";
+import userSlice from "@/libs/redux/userSlice";
 
 const RegisterFormComponent = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const {
     register,
@@ -23,21 +26,26 @@ const RegisterFormComponent = () => {
   const { execute, isExecuting } = useAction(RegisterAction, {
     onSuccess: ({ data }) => {
       if (!data.success) {
-        setError('root', {
-          message: (data.error as { message: string }).message ?? 'Произошла ошибка',
-        })
+        setError("root", {
+          message:
+            (data.error as { message: string }).message ?? "Произошла ошибка",
+        });
       } else {
+        dispatch(userSlice.actions.setUser(data.data!));
+
         router.push("/");
       }
     },
 
     onError: ({ error }) => {
-        if (error.validationErrors) {
-            Object.entries(error.validationErrors.fieldErrors).forEach(([key, error]) => {
-                setError(key as keyof RegisterForm, { message: error[0] })
-            })
-        }
-    }
+      if (error.validationErrors) {
+        Object.entries(error.validationErrors.fieldErrors).forEach(
+          ([key, error]) => {
+            setError(key as keyof RegisterForm, { message: error[0] });
+          },
+        );
+      }
+    },
   });
 
   const onSubmit = async (data: RegisterForm) => {
@@ -122,7 +130,9 @@ const RegisterFormComponent = () => {
       </div>
 
       {errors.root && (
-        <div className="font-sans text-red-500 text-sm">{errors.root.message}</div>
+        <div className="font-sans text-red-500 text-sm">
+          {errors.root.message}
+        </div>
       )}
 
       <button
