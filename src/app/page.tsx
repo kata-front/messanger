@@ -1,18 +1,24 @@
+'use client'
+
 import Header from "@/components/header/header";
 import AnimateText from "@/components/UI/animateText";
 import Button from "@/components/UI/button";
+import { useAppSelector } from "@/libs/redux/store";
+import userSlice from "@/libs/redux/userSlice";
 
 export default function Home() {
+  const user = useAppSelector(userSlice.selectors.selectUser)
+
   return (
     <>
       <Header />
       <main>
         <section className="p-6.25 w-screen h-screen bg-background grid grid-cols-1 md:grid-cols-2 items-center gap-5">
           <section className="flex flex-col gap-3">
-            <section className="flex gap-5">
+            {!user && <section className="flex gap-5">
               <Button href='/register' classes='w-40 h-10'>Регистрация</Button>
               <Button href='/login' classes='w-40 h-10'>Вход</Button>
-            </section>
+            </section>}
             <div className="text-5xl font-sans">
               <div className="block bg-linear-to-r from-gradient-1 to-gradient-2 bg-clip-text text-transparent">
                 Максимум

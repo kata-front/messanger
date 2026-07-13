@@ -9,6 +9,10 @@ export const proxy = async(req: NextRequest) => {
     const accessToken = cookieStorage.get('accessToken')
         
     if (accessToken) {
+        if (req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/register') {
+            return NextResponse.redirect(new URL('/chats', req.url))
+        }
+
         const payload = await verifyToken(accessToken.value)
 
         if (payload?.name) {
@@ -19,6 +23,10 @@ export const proxy = async(req: NextRequest) => {
     const refreshToken = cookieStorage.get('refreshToken')
 
     if (refreshToken) {
+        if (req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/register') {
+            return NextResponse.redirect(new URL('/chats', req.url))
+        }
+
         const payload = await verifyToken(refreshToken.value)
 
         if (payload?.sub) {
@@ -46,5 +54,5 @@ export const proxy = async(req: NextRequest) => {
 }
 
 export const config = {
-    matcher: ['/', '/chat/:path*', '/profile/:path*']
+    matcher: ['/', '/chat/:path*', '/profile/:path*', '/login', '/register'],
 }

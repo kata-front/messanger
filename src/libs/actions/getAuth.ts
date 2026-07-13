@@ -29,7 +29,7 @@ export async function getAuthAction() {
       return { user: null };
     }
 
-    return { user: { name: user.name, email: user.email } };
+    return { user: { name: user.name, email: user.email, id: user.id } };
   } catch (error) {
     console.error("getAuthAction error:", error);
     return { user: null };
