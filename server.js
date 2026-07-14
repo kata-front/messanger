@@ -20,19 +20,7 @@ app.prepare().then(() => {
     io.on('connection', (socket) => {
         console.log('user connected');
 
-        socket.on('join-room', (roomId) => {
-            socket.join(roomId);
-            socket.to(roomId).emit('user-connected');
-        })
-
-        socket.on('signal', ({ to, data}) => {
-            console.log('signal received', {to, data});
-            socket.to(to).emit('signal', {from: socket.id, data})
-        })
-
-        socket.on('disconnect', () => {
-            console.log('user disconnected');
-        })
+        
     })
 
     server.listen(3000, (err) => {

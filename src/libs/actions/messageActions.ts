@@ -10,7 +10,7 @@ const MessageSchema = z.object({
   text: z.string().min(1, { message: "Text is required" }),
 });
 
-const messageClient = actionClient
+const sendMessage = actionClient
   .inputSchema(MessageSchema)
   .action(async ({ parsedInput: { chatId, text } }) => {
     try {
@@ -48,11 +48,12 @@ const messageClient = actionClient
     }
   });
 
-
 const getMessage = actionClient
-  .inputSchema(z.object({
-    chatId: z.string().min(1, { message: "Chat ID is required" }),
-  }))
+  .inputSchema(
+    z.object({
+      chatId: z.string().min(1, { message: "Chat ID is required" }),
+    }),
+  )
   .action(async ({ parsedInput: { chatId } }) => {
     try {
       const { user } = await getAuthAction();
@@ -69,14 +70,11 @@ const getMessage = actionClient
           },
         },
       });
-      if (!chat) throw new Error("Chat not found");  
+      if (!chat) throw new Error("Chat not found");
 
       const messages = await prisma.message.findMany({
         where: {
           chatId,
-        },
-        include: {
-          user: { select: { id: true, name: true, email: true } },
         },
       });
 
@@ -86,3 +84,5 @@ const getMessage = actionClient
       return { success: false, error: { message: "Internal server error" } };
     }
   });
+
+export { sendMessage, getMessage };
