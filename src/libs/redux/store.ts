@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userSlice from "./userSlice";
 import { useDispatch, useSelector } from "react-redux";
+import activeChatIdSlice from "./activeChatSlice";
 
 const store = configureStore({
     reducer: {
+        [activeChatIdSlice.name]: activeChatIdSlice.reducer,
         [userSlice.name]: userSlice.reducer
     },
 })

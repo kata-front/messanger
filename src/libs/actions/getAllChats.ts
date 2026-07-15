@@ -14,6 +14,14 @@ const getAllChats = async () => {
       },
       select: {
         id: true,
+        partisipants: {
+          where: {
+            id: { not: user.id }, // исключаем текущего пользователя
+          },
+          select: {
+            name: true, // берём только имя собеседника
+          },
+        },
         messages: {
           orderBy: {
             createdAt: "desc",
@@ -29,7 +37,10 @@ const getAllChats = async () => {
 
     return { success: true, data: chats };
   } catch (error: any) {
-    return { success: false, error: { message: error.message || "Internal server error" } };
+    return {
+      success: false,
+      error: { message: error.message || "Internal server error" },
+    };
   }
 };
 

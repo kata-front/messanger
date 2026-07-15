@@ -21,7 +21,7 @@ const sendMessage = actionClient
       const chat = await prisma.chat.findFirst({
         where: {
           id: chatId,
-          users: {
+          partisipants: {
             some: {
               id: user.id,
             },
@@ -63,7 +63,7 @@ const getMessage = actionClient
       const chat = await prisma.chat.findFirst({
         where: {
           id: chatId,
-          users: {
+          partisipants: {
             some: {
               id: user.id,
             },
