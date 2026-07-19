@@ -5,8 +5,10 @@ import { useAppSelector } from "@/libs/redux/store";
 import { FC, useEffect, useState } from "react";
 import Input from "../input";
 import { sendMessage } from "@/libs/actions/messageActions";
+import { useSocket } from "@/hooks/useSocket";
 
 const ActiveChatComponent: FC = () => {
+  const socket = useSocket();
   const activeChatId = useAppSelector(
     activeChatIdSlice.selectors.getActiveChatId,
   );
@@ -34,6 +36,21 @@ const ActiveChatComponent: FC = () => {
 
   const [value, setValue] = useState<string>("");
 
+  useEffect(() => {
+    socket?.on("chat-message", (data) => {
+      console.log('message', data);
+      setActiveChat((prev) => {
+        if (prev) {
+          return {
+            ...prev,
+            messages: [...prev.messages, data],
+          };
+        }
+        return prev;
+      });
+    })
+  }, [])
+
   return (
     <section className="w-full h-full md:w-[70%] md:px-6.25">
       <div className="w-full h-full rounded-2xl py-6.25 md:p-6.25 md:bg-white">
@@ -58,7 +75,7 @@ const ActiveChatComponent: FC = () => {
               ) : (
                 <>
                   {activeChat?.messages?.map((message: any) => (
-                    <div key={message.id} className="w-full h-full">{message?.text}</div>
+                    <div key={message.id}>{message?.text}</div>
                   ))}
                 </>
               )}
@@ -72,10 +89,12 @@ const ActiveChatComponent: FC = () => {
                 />
                 <div
                   onClick={async () => {
-                    await sendMessage({
-                      chatId: activeChatId,
-                      text: value,
-                    });
+                    if (socket && socket.connected) {
+                      socket.emit("chat-message", {chatId: activeChatId, text: value});
+                    }
+                    await sendMessage({chatId: activeChatId, text: value});
+                    
+                    setValue("");
                   }}
                   className="cursor-pointer h-9 flex items-center justify-center px-2"
                 >

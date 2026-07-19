@@ -50,6 +50,10 @@ export const proxy = async(req: NextRequest) => {
         }
     }
 
+    if (req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/register') {
+        return NextResponse.next()
+    }
+
     return NextResponse.redirect(new URL('/login', req.url))
 }
 

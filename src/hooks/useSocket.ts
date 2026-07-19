@@ -1,22 +1,14 @@
-"use client";
-import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-const useSocket = (roomId: string): Socket | null => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+class SocketManager {
+  private static instance: Socket | null = null;
 
-  useEffect(() => {
-    const newSocket = io();
-    setSocket(newSocket);
+  public static getInstance() {
+    if (!this.instance) {
+      this.instance = io()
+    }
+    return this.instance;
+  }
+}
 
-    newSocket.emit("join-room", roomId);
-
-    return () => {
-      newSocket.disconnect();
-    };
-  }, [roomId]);
-
-  return socket;
-};
-
-export default useSocket;
+export const useSocket = () => SocketManager.getInstance();

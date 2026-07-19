@@ -6,9 +6,11 @@ import Input from "../input";
 import { useAppDispatch } from "@/libs/redux/store";
 import getAllChats from "@/libs/actions/getAllChats";
 import activeChatIdSlice from "@/libs/redux/activeChatSlice";
+import { useSocket } from "@/hooks/useSocket";
 
 const FindSection: FC = () => {
   const dispatch = useAppDispatch();
+  const socket = useSocket();
 
   const [chats, setChats] = useState<any[]>([]);
 
@@ -92,6 +94,7 @@ const FindSection: FC = () => {
             key={item.id}
             onClick={() => {
               dispatch(activeChatIdSlice.actions.setActiveChatId(item.id));
+              socket?.emit("join", item.id);
             }}
           >
             <span>
